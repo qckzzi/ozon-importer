@@ -1,0 +1,30 @@
+repos:
+  - repo: local
+    hooks:
+      - id: absolufy-imports
+        name: absolufy-imports
+        stages: [commit]
+        language: system
+        entry: poetry run absolufy-imports
+        types: [python]
+      - id: ruff-check
+        name: ruff-check
+        stages: [commit]
+        language: system
+        entry: poetry run ruff check
+        types: [python]
+      - id: ruff-format
+        name: ruff-format
+        stages: [commit]
+        language: system
+        entry: poetry run ruff format
+        types: [python]
+      # Выключен до лучших времен
+      # - id: mypy
+      #   name: mypy
+      #   stages: [commit]
+      #   language: system
+      #   entry: poetry run mypy
+      #   args: [--disallow-untyped-defs, --disallow-incomplete-defs, --no-implicit-optional, --local-partial-types, --strict-equality, ]
+      #   types: [python]
+      #   require_serial: true

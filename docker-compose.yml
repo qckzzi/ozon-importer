@@ -1,0 +1,23 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=$RABBITMQ_DEFAULT_USER
+      - RABBITMQ_DEFAULT_PASS=$RABBITMQ_DEFAULT_PASS
+    ports:
+      # AMQP protocol port
+      - '5672:5672'
+      # HTTP management UI
+      - '15672:15672'
+    healthcheck:
+        test: [ "CMD", "rabbitmqctl", "status"]
+        interval: 5s
+        timeout: 20s
+        retries: 5
+  ozon-importer:
+    build: .
+    depends_on:
+        rabbitmq:
+            condition: service_healthy
+    env_file: .env

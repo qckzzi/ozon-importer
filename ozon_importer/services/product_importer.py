@@ -1,5 +1,4 @@
 import asyncio
-from collections.abc import Coroutine
 
 from ozon_importer.exceptions import ProductTypeNotFoundError
 from ozon_importer.interfaces import ILogger
@@ -38,39 +37,29 @@ class ProductImporter:
         )
         await self.client.send_brand({"name": product.brand, "marketplace_id": self.marketplace_id}, logger)
 
-        characteristic_tasks: list[Coroutine] = []
-        characteristic_value_tasks: list[Coroutine] = []
-
         sended_characteristic_names: set[str] = set()
 
         for characteristic in product.characteristics:
             if characteristic.name not in sended_characteristic_names:
-                characteristic_tasks.append(
-                    self.client.send_characteristic(
-                        {
-                            "name": characteristic.name,
-                            "product_type_name": product_type_characteristic.value,
-                            "marketplace_id": self.marketplace_id,
-                        },
-                        logger,
-                    ),
+                await self.client.send_characteristic(
+                    {
+                        "name": characteristic.name,
+                        "product_type_name": product_type_characteristic.value,
+                        "marketplace_id": self.marketplace_id,
+                    },
+                    logger,
                 )
 
                 sended_characteristic_names.add(characteristic.name)
 
-            characteristic_value_tasks.append(
-                self.client.send_characteristic_value(
-                    {
-                        "value": characteristic.value,
-                        "characteristic_name": characteristic.name,
-                        "marketplace_id": self.marketplace_id,
-                    },
-                    logger,
-                ),
+            await self.client.send_characteristic_value(
+                {
+                    "value": characteristic.value,
+                    "characteristic_name": characteristic.name,
+                    "marketplace_id": self.marketplace_id,
+                },
+                logger,
             )
-
-        await asyncio.gather(*characteristic_tasks)
-        await asyncio.gather(*characteristic_value_tasks)
 
         product_id, is_new = await self.client.send_product(
             {
@@ -91,6 +80,5 @@ class ProductImporter:
                 *[self.image_fetcher.fetch(url.unicode_string(), logger) for url in product.images],
             )
 
-            await asyncio.gather(
-                *[self.client.send_image({"body": image, "product_id": product_id}, logger) for image in images],
-            )
+            for image in images:
+                await self.client.send_image({"body": image, "product_id": product_id}, logger)

@@ -154,8 +154,8 @@ class MarketsBridgeClient:
         try:
             response.raise_for_status()
         except HTTPStatusError:
-            if HTTPStatus.is_server_error(response.status_code) and logger:
-                logger.debug(str(response.json()))
+            if HTTPStatus(response.status_code).is_server_error and logger:
+                logger.debug("Internal server error")
             raise
 
         return response.json()["id"]
@@ -178,8 +178,8 @@ class MarketsBridgeClient:
         try:
             response.raise_for_status()
         except HTTPStatusError:
-            if HTTPStatus.is_server_error(response.status_code) and logger:
-                logger.debug(str(response.json()))
+            if HTTPStatus(response.status_code).is_server_error and logger:
+                logger.debug("Internal server error")
             raise
 
         return response.json()["id"], response.status_code == HTTPStatus.CREATED
